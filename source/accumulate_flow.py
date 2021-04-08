@@ -18,7 +18,8 @@ Usage:
 """.format(
         command=os.path.basename(sys.argv[0]))
 
-    arguments = docopt.docopt(usage)
+    argv = [arg for arg in sys.argv[1:] if not arg.startswith("--hpx")]
+    arguments = docopt.docopt(usage, argv)
     input_dataset_pathname = arguments["<input_dataset>"]
     array_pathname = arguments["<flow_direction>"]
     output_dataset_pathname = arguments["<output_dataset>"]
