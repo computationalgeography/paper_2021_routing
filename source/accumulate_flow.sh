@@ -5,14 +5,14 @@ lue_translate="$LUE_OBJECTS/bin/lue_translate"
 
 area="pyrenees"
 
-# input_dataset_pathname="/mnt/data1/home/kor/data/project/routing/dem_ldd/108680/ldd_108680.lue"
-# flow_direction_array_pathname="area/raster/ldd_108680"
-
 # input_dataset_pathname="/mnt/data1/home/kor/data/project/routing/africa/africa.lue"
 # flow_direction_array_pathname="area/raster/flow_direction"
 
 # input_dataset_pathname="/mnt/data1/home/kor/data/project/routing/africa2/ldd_africa.lue"
 # flow_direction_array_pathname="area/raster/ldd"
+
+# input_dataset_pathname="/mnt/data1/home/kor/data/project/routing/dem_ldd/ldd_southafrica/south_africa.lue"
+# flow_direction_array_pathname="area/raster/ldd_southafrica"
 
 input_dataset_pathname="$LUE_ROUTING_DATA/$area/ldd_108680.lue"
 flow_direction_array_pathname="area/raster/ldd_108680"
@@ -70,6 +70,7 @@ PYTHONPATH=$LUE/../paper_2021_routing/source/:$PYTHONPATH \
 layer_names="
     flow_direction
     inflow_count
+    inter_partition_stream
     flow_accumulation
     flow_accumulation_fraction_flux
     flow_accumulation_fraction_state
