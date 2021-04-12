@@ -35,11 +35,12 @@ Usage:
 
     # Perform calculations on flow direction network
     inflow_count = lfr.inflow_count(flow_direction)
+    inter_partition_stream = lfr.inter_partition_stream(flow_direction)
 
     material = lfr.create_array(array_shape, partition_shape, lst.material_t, 1.0)
     flow_accumulation = lfr.accu(flow_direction, material)
 
-    fraction = lfr.create_array(array_shape, partition_shape, lst.fraction_t, 0.5)
+    fraction = lfr.create_array(array_shape, partition_shape, lst.fraction_t, 0.75)
     flow_accumulation_fraction_flux, flow_accumulation_fraction_state = \
         lfr.accu_fraction(flow_direction, material, fraction)
 
@@ -51,6 +52,7 @@ Usage:
     io_tuples = [
             (flow_direction, "flow_direction"),
             (inflow_count, "inflow_count"),
+            (inter_partition_stream, "inter_partition_stream"),
             (flow_accumulation, "flow_accumulation"),
             (flow_accumulation_fraction_flux, "flow_accumulation_fraction_flux"),
             (flow_accumulation_fraction_state, "flow_accumulation_fraction_state"),
