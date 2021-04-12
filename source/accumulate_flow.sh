@@ -12,6 +12,9 @@ flow_direction_array_pathname="area/raster/ldd_108680"
 # input_dataset_pathname="/mnt/data1/home/kor/data/project/routing/africa2/ldd_africa.lue"
 # flow_direction_array_pathname="area/raster/ldd"
 
+# input_dataset_pathname="/mnt/data1/home/kor/data/project/routing/dem_ldd/ldd_southafrica/south_africa.lue"
+# flow_direction_array_pathname="area/raster/ldd_southafrica"
+
 output_prefix="/tmp"
 output_dataset_pathname="$output_prefix/tmp.lue"
 
@@ -36,6 +39,7 @@ PYTHONPATH=$LUE/../paper_2021_routing/source/:$PYTHONPATH \
 layer_names="
     flow_direction
     inflow_count
+    inter_partition_stream
     flow_accumulation
     flow_accumulation_fraction_flux
     flow_accumulation_fraction_state
