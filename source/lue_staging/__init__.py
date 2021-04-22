@@ -22,7 +22,18 @@ def lue_init(user_main):
             "hpx.diagnostics_on_terminate!=0",
             # Make AGAS clean up resources faster than by default
             "hpx.agas.max_pending_refcnt_requests!=50",
+
+            # Got an HPX error when processing Africa dataset:
+            #     mmap() failed to allocate thread stack due to
+            #     insufficient resources, increase
+            #     /proc/sys/vm/max_map_count or add
+            #     -Ihpx.stacks.use_guard_pages=0 to the command line
+            "hpx.stacks.use_guard_pages!=0",
         ]
+
+        # for key in os.environ:
+        #     if key.startswith("SLURM"):
+        #         print("{}: {}".format(key, os.environ[key]))
 
         lfr.start_hpx_runtime(hpx_configuration)
 
@@ -57,31 +68,31 @@ material_t = np.dtype(np.float32)
 fraction_t = np.dtype(np.float32)
 
 
-def reclassify_flow_direction(
-        flow_direction):
-
-    flow_direction = lfr.where(flow_direction == 1, 6, flow_direction)
-    flow_direction = lfr.where(flow_direction == 2, 3, flow_direction)
-    flow_direction = lfr.where(flow_direction == 4, 2, flow_direction)
-    flow_direction = lfr.where(flow_direction == 8, 1, flow_direction)
-    flow_direction = lfr.where(flow_direction == 16, 4, flow_direction)
-    flow_direction = lfr.where(flow_direction == 32, 7, flow_direction)
-    flow_direction = lfr.where(flow_direction == 64, 8, flow_direction)
-    flow_direction = lfr.where(flow_direction == 128, 9, flow_direction)
-
-    flow_direction = lfr.where(flow_direction == 0, 5, flow_direction)
-
-    flow_direction = lfr.where(flow_direction == 247, 255, flow_direction)
-
-    flow_direction = lfr.where(flow_direction == -1, 5, flow_direction)
-    flow_direction = lfr.where(flow_direction == -9, 255, flow_direction)
-
-    # if flow_direction.dtype != flow_direction_t:
-
-    # Reclassify flow directions to LUE conventions
-    # TODO
-
-    return flow_direction
+# def reclassify_flow_direction(
+#         flow_direction):
+# 
+#     flow_direction = lfr.where(flow_direction == 1, 6, flow_direction)
+#     flow_direction = lfr.where(flow_direction == 2, 3, flow_direction)
+#     flow_direction = lfr.where(flow_direction == 4, 2, flow_direction)
+#     flow_direction = lfr.where(flow_direction == 8, 1, flow_direction)
+#     flow_direction = lfr.where(flow_direction == 16, 4, flow_direction)
+#     flow_direction = lfr.where(flow_direction == 32, 7, flow_direction)
+#     flow_direction = lfr.where(flow_direction == 64, 8, flow_direction)
+#     flow_direction = lfr.where(flow_direction == 128, 9, flow_direction)
+# 
+#     flow_direction = lfr.where(flow_direction == 0, 5, flow_direction)
+# 
+#     flow_direction = lfr.where(flow_direction == 247, 255, flow_direction)
+# 
+#     flow_direction = lfr.where(flow_direction == -1, 5, flow_direction)
+#     flow_direction = lfr.where(flow_direction == -9, 255, flow_direction)
+# 
+#     # if flow_direction.dtype != flow_direction_t:
+# 
+#     # Reclassify flow directions to LUE conventions
+#     # TODO
+# 
+#     return flow_direction
 
 
 def space_box(
@@ -129,52 +140,49 @@ def write_translate_json(
     open(meta_pathname, "w").write(json.dumps(object, indent=4))
 
 
-def write_raster(
-        raster_view,
-        property_set_pathname,
-        array,
-        layer_name):
-
-    raster_view.add_layer(layer_name, array.dtype)
-
-    array_pathname = os.path.join(property_set_pathname, layer_name)
-
-    return lfr.write_array(array, array_pathname)
-
-
 def write_rasters(
-        dataset,
+        dataset_pathname,
         phenomenon_name,
         property_set_name,
         array_shape,
         space_box,
         io_tuples):
 
+    dataset = ldm.create_dataset(dataset_pathname)
     raster_view = ldm.hl.create_raster_view(
         dataset, phenomenon_name, property_set_name, array_shape, space_box)
-
-    write_fs = []
-    dataset_pathname = dataset.pathname
 
     for io_tuple in io_tuples:
         array, layer_name = io_tuple
         property_set_pathname = os.path.join(dataset_pathname, phenomenon_name, property_set_name)
 
-        write_fs.append(write_raster(raster_view, property_set_pathname, array, layer_name))
+        raster_view.add_layer(layer_name, array.dtype)
+
+    # Let go of the dataset. Otherwise the next writes will fail.
+    del raster_view
+    del dataset
+
+    for io_tuple in io_tuples:
+        array, layer_name = io_tuple
+        property_set_pathname = os.path.join(dataset_pathname, phenomenon_name, property_set_name)
+        array_pathname = os.path.join(property_set_pathname, layer_name)
+
+        lfr.write_array(array, array_pathname)
+
         write_translate_json(dataset_pathname, phenomenon_name, property_set_name, layer_name)
 
-    return write_fs
 
+def duration(label):
+    def decorator(function):
+        def decorated_function(*args, **kwargs):
+            start_time = timeit.default_timer()
+            result = function(*args, **kwargs)
+            elapsed = timeit.default_timer() - start_time
+            print("duration {}: {:.2}s / {:.2}m".format(label, elapsed, elapsed / 60))
+            return result
 
-def duration(function):
-
-    def decorated_function(*args, **kwargs):
-        start_time = timeit.default_timer()
-        function(*args, **kwargs)
-        elapsed = timeit.default_timer() - start_time
-        print(elapsed)
-
-    return decorated_function
+        return decorated_function
+    return decorator
 
 
 def wait_all(

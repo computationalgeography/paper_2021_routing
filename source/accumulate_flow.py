@@ -6,10 +6,7 @@ import os.path
 import sys
 
 
-@lst.lue_init
-@lst.duration
-def accumulate_flow():
-
+def parse_command_line():
     usage = """\
 Accumulate flow
 
@@ -23,31 +20,71 @@ Usage:
     input_dataset_pathname = arguments["<input_dataset>"]
     array_pathname = arguments["<flow_direction>"]
     output_dataset_pathname = arguments["<output_dataset>"]
-    partition_shape = (1000, 1000)
 
-    phenomenon_name, property_set_name, flow_direction_layer_name = array_pathname.split("/")
+    return input_dataset_pathname, array_pathname, output_dataset_pathname
 
-    # Read flow directions from existing LUE dataset into array
-    array_pathname = \
-        os.path.join(input_dataset_pathname, phenomenon_name, property_set_name, flow_direction_layer_name)
-    flow_direction = lfr.read_array(array_pathname, partition_shape)
+
+@lst.duration("create_inputs")
+def create_inputs(
+        dataset_pathname,
+        array_pathname,
+        partition_shape):
+
+    flow_direction = lfr.read_array("{}/{}".format(dataset_pathname, array_pathname), partition_shape)
     array_shape = flow_direction.shape
+    material = lfr.create_array(array_shape, partition_shape, lst.material_t, 1.0)
+    fraction = lfr.create_array(array_shape, partition_shape, lst.fraction_t, 0.75)
 
-    # Perform calculations on flow direction network
+    # Blocks
+    lst.wait_all([
+        lfr.maximum(flow_direction),
+        lfr.maximum(material),
+        lfr.maximum(fraction)])
+
+    return flow_direction, material, fraction
+
+
+@lst.duration("perform_calculations")
+def perform_calculations(
+        flow_direction,
+        material,
+        fraction):
+
     inflow_count = lfr.inflow_count(flow_direction)
     inter_partition_stream = lfr.inter_partition_stream(flow_direction)
 
-    material = lfr.create_array(array_shape, partition_shape, lst.material_t, 1.0)
     flow_accumulation = lfr.accu(flow_direction, material)
 
-    fraction = lfr.create_array(array_shape, partition_shape, lst.fraction_t, 0.75)
     flow_accumulation_fraction_flux, flow_accumulation_fraction_state = \
         lfr.accu_fraction(flow_direction, material, fraction)
 
-    # Write results to dataset
-    input_dataset = ldm.open_dataset(input_dataset_pathname)
+    # Blocks
+    lst.wait_all([
+        lfr.maximum(inflow_count),
+        lfr.maximum(inter_partition_stream),
+        lfr.maximum(flow_accumulation),
+        lfr.maximum(flow_accumulation_fraction_flux),
+        lfr.maximum(flow_accumulation_fraction_state)])
+
+    return inflow_count, inter_partition_stream, flow_accumulation, flow_accumulation_fraction_flux, flow_accumulation_fraction_state
+
+
+@lst.duration("write_outputs")
+def write_outputs(
+        flow_direction,
+        inflow_count,
+        inter_partition_stream,
+        flow_accumulation,
+        flow_accumulation_fraction_flux,
+        flow_accumulation_fraction_state,
+        input_dataset_pathname,
+        array_pathname,
+        output_dataset_pathname):
+
+    phenomenon_name, property_set_name, _ = array_pathname.split("/")
+
+    input_dataset = ldm.open_dataset(input_dataset_pathname, "r")
     space_box = lst.space_box(input_dataset, phenomenon_name, property_set_name)
-    output_dataset = ldm.create_dataset(output_dataset_pathname)
 
     io_tuples = [
             (flow_direction, "flow_direction"),
@@ -58,13 +95,30 @@ Usage:
             (flow_accumulation_fraction_state, "flow_accumulation_fraction_state"),
         ]
 
-    write_fs = lst.write_rasters(
-        output_dataset, phenomenon_name, property_set_name, array_shape, space_box, io_tuples)
+    # Blocks
+    lst.write_rasters(
+        output_dataset_pathname, phenomenon_name, property_set_name, flow_direction.shape, space_box, io_tuples)
 
-    # Wait for the writes (and the preceding calculations) to have
-    # finished. Otherwise the timings will only be measuring the creation
-    # of the tasks, instead of also the execution.
-    lst.wait_all(write_fs)
+
+@lst.lue_init
+@lst.duration("overall")
+def accumulate_flow():
+
+    # Initialize (blocks)
+    input_dataset_pathname, array_pathname, output_dataset_pathname = parse_command_line()
+    partition_shape = (1000, 1000)
+    flow_direction, material, fraction = create_inputs(input_dataset_pathname, array_pathname, partition_shape)
+
+    # Calculate (blocks)
+    inflow_count, inter_partition_stream, \
+    flow_accumulation, flow_accumulation_fraction_flux, flow_accumulation_fraction_state = \
+        perform_calculations(flow_direction, material, fraction)
+
+    # Write outputs (blocks)
+    write_outputs(
+        flow_direction, inflow_count, inter_partition_stream,
+        flow_accumulation, flow_accumulation_fraction_flux, flow_accumulation_fraction_state,
+        input_dataset_pathname, array_pathname, output_dataset_pathname)
 
 
 accumulate_flow()
