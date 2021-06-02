@@ -7,19 +7,18 @@ area="south_africa"
 input_dataset_pathname="$LUE_ROUTING_DATA/$area/south_africa.lue"
 flow_direction_array_pathname="area/raster/ldd_southafrica"
 
-nr_nodes=1
-area="africa"
-input_dataset_pathname="$LUE_ROUTING_DATA/$area/africa.lue"
-flow_direction_array_pathname="area/raster/ldd"
+# nr_nodes=1
+# area="africa"
+# input_dataset_pathname="$LUE_ROUTING_DATA/$area/africa.lue"
+# flow_direction_array_pathname="area/raster/ldd"
+# 
+# nr_nodes=1
+# area="pyrenees"
+# input_dataset_pathname="$LUE_ROUTING_DATA/$area/ldd_108680.lue"
+# flow_direction_array_pathname="area/raster/ldd_108680"
 
-nr_nodes=1
-area="pyrenees"
-input_dataset_pathname="$LUE_ROUTING_DATA/$area/ldd_108680.lue"
-flow_direction_array_pathname="area/raster/ldd_108680"
 
-
-# PYTHONPATH=$LUE/../paper_2021_routing/source/:$PYTHONPATH \
-
+export PYTHONPATH=$LUE/../paper_2021_routing/source/:$PYTHONPATH
 export APEX_OTF2=1
 
 
@@ -58,11 +57,12 @@ function run_on_eejit()
 }
 
 
-function run_on_snowdon()
+function run_on_desktop()
 {
+    nr_cores_per_socket=$1
+
     # Fixed. Depends on platform.
     nr_numa_domains_per_node=1
-    nr_cores_per_socket=4
     nr_threads_per_locality=$nr_cores_per_socket
     cpu_binding="thread:0-$(expr $nr_threads_per_locality - 1)=core:0-$(expr $nr_threads_per_locality - 1).pu:0"
 
@@ -83,4 +83,4 @@ function run_on_snowdon()
 }
 
 
-run_on_snowdon
+run_on_desktop 4

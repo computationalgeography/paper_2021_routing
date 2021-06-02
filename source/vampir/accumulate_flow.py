@@ -67,20 +67,20 @@ def perform_calculations(
     #     [100.000 ns - 1.000.000 ns]
 
 
-    inflow_count = lfr.inflow_count(flow_direction)
-    inter_partition_stream = lfr.inter_partition_stream(flow_direction)
-    flow_accumulation = lfr.accu(flow_direction, material)
+    # inflow_count = lfr.inflow_count(flow_direction)
+    # inter_partition_stream = lfr.inter_partition_stream(flow_direction)
+    # flow_accumulation = lfr.accu(flow_direction, material)
 
-    # flow_accumulation_fraction_flux, flow_accumulation_fraction_state = \
-    #     lfr.accu_fraction(flow_direction, material, fraction)
+    flow_accumulation_fraction_flux, flow_accumulation_fraction_state = \
+        lfr.accu_fraction(flow_direction, material, fraction)
 
     # Blocks
     lst.wait_all([
-            lfr.maximum(inflow_count),
-            lfr.maximum(inter_partition_stream),
-            lfr.maximum(flow_accumulation),
-            # lfr.maximum(flow_accumulation_fraction_flux),
-            # lfr.maximum(flow_accumulation_fraction_state),
+            # lfr.maximum(inflow_count),
+            # lfr.maximum(inter_partition_stream),
+            # lfr.maximum(flow_accumulation),
+            lfr.maximum(flow_accumulation_fraction_flux),
+            lfr.maximum(flow_accumulation_fraction_state),
         ])
 
 
