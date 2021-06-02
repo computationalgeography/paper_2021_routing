@@ -1,5 +1,6 @@
 import lue.data_model as ldm
 import lue.framework as lfr
+import lue_staging.data_model as lstdm
 import os.path
 
 
@@ -70,7 +71,7 @@ def write_rasters(
 
         lfr.write_array(array, array_pathname)
 
-        write_translate_json(dataset_pathname, phenomenon_name, property_set_name, layer_name)
+        lstdm.write_translate_json(dataset_pathname, phenomenon_name, property_set_name, layer_name)
 
 
 def wait_all(
