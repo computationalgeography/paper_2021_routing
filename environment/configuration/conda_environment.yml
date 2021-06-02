@@ -1,0 +1,17 @@
+name: paper_2021_routing
+channels:
+- conda-forge
+- defaults
+dependencies:
+# - python-dateutil
+- docopt
+- matplotlib
+- ipython
+- numpy
+- fiona
+# - rasterio
+# - scipy
+# - setuptools
+# - sphinx
+# - sphinx_rtd_theme
+# - tqdm
