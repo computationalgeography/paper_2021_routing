@@ -57,7 +57,6 @@ salloc \
     --cpus-per-task=$nr_cpus_per_task \
     --cores-per-socket=$nr_cores_per_socket \
     mpirun \
-        --mca btl_openib_allow_ib true \
         python \
             $LUE/../paper_2021_routing/source/accumulate_flow.py \
                 $input_dataset_pathname $flow_direction_array_pathname \
