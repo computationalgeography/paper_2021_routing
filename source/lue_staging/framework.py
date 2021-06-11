@@ -1,6 +1,7 @@
 import lue.data_model as ldm
 import lue.framework as lfr
 import lue_staging.data_model as lstdm
+from collections.abc import Iterable
 import os.path
 
 
@@ -51,14 +52,19 @@ def write_rasters(
         io_tuples):
 
     dataset = ldm.create_dataset(dataset_pathname)
+
     raster_view = ldm.hl.create_raster_view(
         dataset, phenomenon_name, property_set_name, array_shape, space_box)
 
     for io_tuple in io_tuples:
         array, layer_name = io_tuple
-        property_set_pathname = os.path.join(dataset_pathname, phenomenon_name, property_set_name)
 
-        raster_view.add_layer(layer_name, array.dtype)
+        if isinstance(array, Iterable):
+            for i in range(len(array)):
+                layer_name_i = "{}-{}".format(layer_name, i)
+                raster_view.add_layer(layer_name_i, array[i].dtype)
+        else:
+            raster_view.add_layer(layer_name, array.dtype)
 
     # Let go of the dataset. Otherwise the next writes will fail.
     del raster_view
@@ -67,11 +73,62 @@ def write_rasters(
     for io_tuple in io_tuples:
         array, layer_name = io_tuple
         property_set_pathname = os.path.join(dataset_pathname, phenomenon_name, property_set_name)
-        array_pathname = os.path.join(property_set_pathname, layer_name)
 
-        lfr.write_array(array, array_pathname)
+        if isinstance(array, Iterable):
+            for i in range(len(array)):
+                layer_name_i = "{}-{}".format(layer_name, i)
+                array_pathname = os.path.join(property_set_pathname, layer_name_i)
 
-        lstdm.write_translate_json(dataset_pathname, phenomenon_name, property_set_name, layer_name)
+                lfr.write_array(array[i], array_pathname)
+
+                lstdm.write_translate_json(dataset_pathname, phenomenon_name, property_set_name, layer_name_i)
+        else:
+            array_pathname = os.path.join(property_set_pathname, layer_name)
+
+            lfr.write_array(array, array_pathname)
+
+            lstdm.write_translate_json(dataset_pathname, phenomenon_name, property_set_name, layer_name)
+
+
+def write_rasters2(
+        dataset_pathname,
+        raster_view,
+        phenomenon_name,
+        property_set_name,
+        io_tuples):
+
+    for io_tuple in io_tuples:
+        array, layer_name = io_tuple
+
+        if isinstance(array, Iterable):
+            for i in range(len(array)):
+                layer_name_i = "{}-{}".format(layer_name, i)
+                raster_view.add_layer(layer_name_i, array[i].dtype)
+        else:
+            raster_view.add_layer(layer_name, array.dtype)
+
+    # Let go of the dataset. Otherwise the next writes will fail.
+    del raster_view
+    # del dataset
+
+    for io_tuple in io_tuples:
+        array, layer_name = io_tuple
+        property_set_pathname = os.path.join(dataset_pathname, phenomenon_name, property_set_name)
+
+        if isinstance(array, Iterable):
+            for i in range(len(array)):
+                layer_name_i = "{}-{}".format(layer_name, i)
+                array_pathname = os.path.join(property_set_pathname, layer_name_i)
+
+                lfr.write_array(array[i], array_pathname)
+
+                lstdm.write_translate_json(dataset_pathname, phenomenon_name, property_set_name, layer_name_i)
+        else:
+            array_pathname = os.path.join(property_set_pathname, layer_name)
+
+            lfr.write_array(array, array_pathname)
+
+            lstdm.write_translate_json(dataset_pathname, phenomenon_name, property_set_name, layer_name)
 
 
 def wait_all(
