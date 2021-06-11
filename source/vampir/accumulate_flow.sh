@@ -13,7 +13,6 @@ input_dataset_pathname="$LUE_ROUTING_DATA/$area/ldd_108680.lue"
 flow_direction_array_pathname="area/raster/ldd_108680"
 
 nr_nodes=1
->>>>>>> 01d1cafae0699d52b6b9eeb12ef21e6b329c74f0
 area="south_africa"
 input_dataset_pathname="$LUE_ROUTING_DATA/$area/south_africa.lue"
 flow_direction_array_pathname="area/raster/ldd_southafrica"
