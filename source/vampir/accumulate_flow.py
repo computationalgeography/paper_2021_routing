@@ -5,12 +5,16 @@ accumulation operation, tasks from the operation after the flow
 accumulation operation will start executing. This can be visualized
 in Vampir.
 """
-import lue.data_model as ldm
-import lue.framework as lfr
-import lue_staging as lst
-import docopt
 import os.path
 import sys
+sys.path = [
+    os.path.join(os.path.split(__file__)[0], "..")
+] + sys.path
+
+import lue.framework as lfr
+import lue_staging.framework as lstfr
+import lue_staging as lst
+import docopt
 
 
 def parse_command_line():
@@ -39,22 +43,22 @@ def create_inputs(
     flow_direction = lfr.read_array("{}/{}".format(dataset_pathname, array_pathname), partition_shape)
     array_shape = flow_direction.shape
     material = lfr.create_array(array_shape, partition_shape, lst.material_t, 1.0)
-    fraction = lfr.create_array(array_shape, partition_shape, lst.fraction_t, 0.75)
+    threshold = lfr.create_array(array_shape, partition_shape, lst.threshold_t, 5.0)
 
     # Blocks
-    lst.wait_all([
+    lstfr.wait_all([
         lfr.maximum(flow_direction),
         lfr.maximum(material),
-        lfr.maximum(fraction)])
+        lfr.maximum(threshold)])
 
-    return flow_direction, material, fraction
+    return flow_direction, material, threshold
 
 
 @lst.duration("perform_calculations")
 def perform_calculations(
         flow_direction,
         material,
-        fraction):
+        threshold):
 
     # Continue until the Vampir trace makes sense
     # - A too long task is 20s
@@ -62,32 +66,32 @@ def perform_calculations(
     #     [100 μs - ms]
     #     [100.000 ns - 1.000.000 ns]
 
-    inflow_count = lfr.inflow_count(flow_direction)
-    inter_partition_stream = lfr.inter_partition_stream(flow_direction)
-    flow_accumulation = lfr.accu(flow_direction, material)
-    flow_accumulation_fraction_flux, flow_accumulation_fraction_state = \
-        lfr.accu_fraction(flow_direction, material, fraction)
+    # inflow_count = lfr.inflow_count(flow_direction)
+    # inter_partition_stream = lfr.inter_partition_stream(flow_direction)
+    # flow_accumulation = lfr.accu(flow_direction, material)
 
-    # Blocks
-    lst.wait_all([
-            lfr.maximum(inflow_count),
-            lfr.maximum(inter_partition_stream),
-            lfr.maximum(flow_accumulation),
-            lfr.maximum(flow_accumulation_fraction_flux),
-            lfr.maximum(flow_accumulation_fraction_state),
-        ])
+    # outflow, remainder = lfr.accu_threshold(flow_direction, material, threshold)
+    # lstfr.wait_all([lfr.maximum(outflow), lfr.maximum(remainder)])
+
+    outflow, remainder = lfr.accu_threshold3(flow_direction, material, threshold)
+
+    # Block
+    for array in [outflow, remainder]:
+        lfr.wait(array)
 
 
-@lst.lue_init
+@lstfr.lue_init
 @lst.duration("overall")
 def accumulate_flow():
 
     # Initialize (blocks)
     input_dataset_pathname, array_pathname = parse_command_line()
-    partition_shape = (1000, 1000)
-    flow_direction, material, fraction = create_inputs(input_dataset_pathname, array_pathname, partition_shape)
+    partition_shape = (2000, 2000)
+    flow_direction, material, threshold = create_inputs(input_dataset_pathname, array_pathname, partition_shape)
 
     # Calculate (blocks)
-    perform_calculations(flow_direction, material, fraction)
+    perform_calculations(flow_direction, material, threshold)
 
-accumulate_flow()
+
+if __name__ == "__main__":
+    accumulate_flow()
