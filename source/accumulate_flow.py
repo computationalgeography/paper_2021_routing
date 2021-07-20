@@ -1,5 +1,7 @@
 import lue.data_model as ldm
 import lue.framework as lfr
+import lue_staging.data_model as lstdm
+import lue_staging.framework as lstfr
 import lue_staging as lst
 import docopt
 import os.path
@@ -36,7 +38,7 @@ def create_inputs(
     fraction = lfr.create_array(array_shape, partition_shape, lst.fraction_t, 0.75)
 
     # Blocks
-    lst.wait_all([
+    lstfr.wait_all([
         lfr.maximum(flow_direction),
         lfr.maximum(material),
         lfr.maximum(fraction)])
@@ -59,7 +61,7 @@ def perform_calculations(
         lfr.accu_fraction(flow_direction, material, fraction)
 
     # Blocks
-    lst.wait_all([
+    lstfr.wait_all([
         lfr.maximum(inflow_count),
         lfr.maximum(inter_partition_stream),
         lfr.maximum(flow_accumulation),
@@ -84,7 +86,7 @@ def write_outputs(
     phenomenon_name, property_set_name, _ = array_pathname.split("/")
 
     input_dataset = ldm.open_dataset(input_dataset_pathname, "r")
-    space_box = lst.space_box(input_dataset, phenomenon_name, property_set_name)
+    space_box = lstdm.space_box(input_dataset, phenomenon_name, property_set_name)
 
     io_tuples = [
             (flow_direction, "flow_direction"),
@@ -96,11 +98,11 @@ def write_outputs(
         ]
 
     # Blocks
-    lst.write_rasters(
+    lstfr.write_rasters(
         output_dataset_pathname, phenomenon_name, property_set_name, flow_direction.shape, space_box, io_tuples)
 
 
-@lst.lue_init
+@lstfr.lue_init
 @lst.duration("overall")
 def accumulate_flow():
 
