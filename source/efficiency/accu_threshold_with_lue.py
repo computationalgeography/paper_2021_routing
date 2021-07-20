@@ -1,15 +1,20 @@
 """
-Calculate accu_threshold with LUE and report the amount of time
+Calculate accu_threshold3 with LUE and report the amount of time
 it took.
 """
+import os.path
+import sys
+sys.path = [
+    os.path.join(os.path.split(__file__)[0], "..")
+] + sys.path
+
+
 import lue.data_model as ldm
 import lue.framework as lfr
 import lue_staging as lst
 import lue_staging.data_model as lstdm
 import lue_staging.framework as lstfr
 import docopt
-import os.path
-import sys
 
 
 def parse_command_line():
@@ -38,38 +43,61 @@ def create_inputs(
 
     flow_direction = lfr.read_array("{}/{}".format(dataset_pathname, array_pathname), partition_shape)
     array_shape = flow_direction.shape
-    material = lfr.create_array(array_shape, partition_shape, lst.material_t, 10.0)
+    external_inflow = lfr.create_array(array_shape, partition_shape, lst.material_t, 10.0)
     threshold = lfr.create_array(array_shape, partition_shape, lst.threshold_t, 5.0)
 
-    # Blocks
-    lstfr.wait_all([
-        lfr.maximum(flow_direction),
-        lfr.maximum(material),
-        lfr.maximum(threshold)])
+    # for array in [flow_direction, external_inflow, threshold]:
+    #     lfr.wait(array)
+    print("flow_direction...")
+    lfr.wait(flow_direction)
+    sys.stdout.flush()
 
-    return flow_direction, material, threshold
+    print("external_inflow...")
+    lfr.wait(external_inflow)
+    sys.stdout.flush()
+
+    print("threshold...")
+    lfr.wait(threshold)
+    sys.stdout.flush()
+
+    # lstfr.wait_all([
+    #     lfr.maximum(flow_direction),
+    #     lfr.maximum(external_inflow),
+    #     lfr.maximum(threshold)])
+
+    return flow_direction, external_inflow, threshold
 
 
 @lst.duration("perform_calculations")
 def perform_calculations(
         flow_direction,
-        material,
+        external_inflow,
         threshold):
 
-    flux, state = lfr.accu_threshold(flow_direction, material, threshold)
+    outflow, residue = lfr.accu_threshold3(flow_direction, external_inflow, threshold)
 
-    # Blocks
-    lstfr.wait_all([
-        lfr.maximum(flux),
-        lfr.maximum(state)])
+    # for array in [outflow, residue]:
+    #     lfr.wait(array)
 
-    return flux
+    print("outflow...")
+    lfr.wait(outflow)
+    sys.stdout.flush()
+
+    print("residue...")
+    lfr.wait(residue)
+    sys.stdout.flush()
+
+    # lstfr.wait_all([
+    #     lfr.maximum(outflow),
+    #     lfr.maximum(residue)])
+
+    return outflow
 
 
 @lst.duration("write_outputs")
 def write_outputs(
         flow_direction,
-        flux,
+        outflow,
         input_dataset_pathname,
         array_pathname,
         output_dataset_pathname):
@@ -81,7 +109,7 @@ def write_outputs(
 
     io_tuples = [
             (flow_direction, "flow_direction"),
-            (flux, "flux"),
+            (outflow, "outflow"),
         ]
 
     # Blocks
@@ -96,13 +124,14 @@ def accumulate_flow():
     # Initialize (blocks)
     input_dataset_pathname, array_pathname, output_dataset_pathname = parse_command_line()
     partition_shape = (1700, 1700)
-    flow_direction, material, threshold = create_inputs(input_dataset_pathname, array_pathname, partition_shape)
+    flow_direction, external_inflow, threshold = \
+        create_inputs(input_dataset_pathname, array_pathname, partition_shape)
 
     # Calculate (blocks)
-    flux = perform_calculations(flow_direction, material, threshold)
+    outflow = perform_calculations(flow_direction, external_inflow, threshold)
 
     # Write outputs (blocks)
-    write_outputs(flow_direction, flux, input_dataset_pathname, array_pathname, output_dataset_pathname)
+    write_outputs(flow_direction, outflow, input_dataset_pathname, array_pathname, output_dataset_pathname)
 
 
 accumulate_flow()

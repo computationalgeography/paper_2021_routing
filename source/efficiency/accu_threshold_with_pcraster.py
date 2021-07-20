@@ -2,11 +2,16 @@
 Calculate accu_threshold with PCRaster and report the amount of time
 it took.
 """
+import os.path
+import sys
+sys.path = [
+    os.path.join(os.path.split(__file__)[0], "..")
+] + sys.path
+
+
 import lue_staging as lst
 import pcraster
 import docopt
-import os.path
-import sys
 
 
 def parse_command_line():
@@ -14,16 +19,15 @@ def parse_command_line():
 Accu threshold
 
 Usage:
-    {command} <flow_direction> <flux> <state>
+    {command} <flow_direction> <outflow>
 """.format(
         command=os.path.basename(sys.argv[0]))
 
     arguments = docopt.docopt(usage)
     flow_direction_pathname = arguments["<flow_direction>"]
-    flux_pathname = arguments["<flux>"]
-    state_pathname = arguments["<state>"]
+    outflow_pathname = arguments["<outflow>"]
 
-    return flow_direction_pathname, flux_pathname, state_pathname
+    return flow_direction_pathname, outflow_pathname
 
 
 @lst.duration("create_inputs")
@@ -43,31 +47,31 @@ def perform_calculations(
         material,
         threshold):
 
-    flux = pcraster.accuthresholdflux(flow_direction, material, threshold)
+    outflow = pcraster.accuthresholdflux(flow_direction, material, threshold)
 
-    return flux
+    return outflow
 
 
 @lst.duration("write_outputs")
 def write_outputs(
-        flux,
-        flux_pathname):
+        outflow,
+        outflow_pathname):
 
-    pcraster.report(flux, flux_pathname)
+    pcraster.report(outflow, outflow_pathname)
 
 
 @lst.duration("overall")
 def accumulate_flow():
 
     # Initialize
-    flow_direction_pathname, flux_pathname, state_pathname = parse_command_line()
+    flow_direction_pathname, outflow_pathname = parse_command_line()
     flow_direction, material, threshold = create_inputs(flow_direction_pathname)
 
     # Calculate
-    flux = perform_calculations(flow_direction, material, threshold)
+    outflow = perform_calculations(flow_direction, material, threshold)
 
     # Write outputs
-    write_outputs(flux, flux_pathname)
+    write_outputs(outflow, outflow_pathname)
 
 
 accumulate_flow()
