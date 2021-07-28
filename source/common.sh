@@ -1,3 +1,8 @@
+### TODO
+### area="africa"
+### input_dataset_pathname="$LUE_ROUTING_DATA/$area/africa.lue"
+### flow_direction_array_pathname="area/raster/ldd"
+### /TODO
 
 area="south_africa"
 input_dataset_pathname="$LUE_ROUTING_DATA/$area/south_africa.lue"
