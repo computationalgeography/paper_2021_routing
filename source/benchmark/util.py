@@ -3,10 +3,16 @@ import sys
 sys.path=[
         os.path.join(os.environ["LUE"], "benchmark", "lue")
     ] + sys.path
+# sys.path = [
+#     os.path.join(os.path.split(__file__)[0], "..", "..", "..", "lue/benchmark/lue")
+# ] + sys.path
 import benchmark
 import benchmark.cluster
 import fiona
+from osgeo import gdal
 import math
+
+gdal.UseExceptions()
 
 
 class Platform(object):
@@ -31,12 +37,14 @@ class Platform(object):
 def platform(
         platform_name):
 
+    # High overhead means lots of resources are occupied with other stuff. The amount of memory
+    # available is (1 - overhead_fraction) * total memory.
     overhead_fraction = {
-            "eejit": 0.4,
-            "gransasso": 0.7,
+            "eejit": 0.2,
+            "gransasso": 0.3,
         }
     cluster_partition_size = {
-            "eejit": 6,
+            "eejit": 4,
             "gransasso": 1,
             "snowdon": 1,
         }
@@ -74,18 +82,32 @@ def array_size(
 
 def calculate_array_shapes(
         nr_bytes_needed_per_cell,
-        platform):
+        platform,
+        overhead_fraction):
 
+    # Memory provided for each platform is in GiB, which is 1024**3 bytes, not GB, which is
+    # 1000**3 bytes.
+    # Calculate the number of cells that fit in the memory available per core. Using more cells
+    # will require more memory, increasing the chance that memory from other NUMA nodes will be
+    # used, for example. That will make the benchmark results harder to interpret.
     nr_bytes_available_per_core = \
-            platform.cluster.cluster_node.memory * 1024**3 / platform.cluster.cluster_node.nr_cores
+        (platform.cluster.cluster_node.memory * 1024**3) / platform.cluster.cluster_node.nr_cores
     max_nr_cells_possible_per_core = nr_bytes_available_per_core / nr_bytes_needed_per_cell
 
-    # This is a maximum. Tweak its value if necessary (using the overhead_fraction).
-    nr_cells_per_core = (1.0 - platform.overhead_fraction) * max_nr_cells_possible_per_core
+    # This is a maximum. Tweak its value if necessary, using the overhead_fraction.
+    # In practice, less memory is available than calculated above. Other processes and the
+    # runtime system and task tree also take up some memory. How much depends on the platform
+    # and the experiment.
+    nr_cells_per_core = (1.0 - overhead_fraction) * max_nr_cells_possible_per_core
 
+    # Calculate possible array sizes by multiplying the nr_cells_per_core by the number of
+    # cores per NUMA node, cluster node, and cluster partition.
     nr_cores_per_numa_node = platform.cluster.cluster_node.package.numa_node.nr_cores
     nr_numa_nodes_per_cluster_node = platform.cluster.cluster_node.nr_numa_nodes
     nr_cluster_nodes_per_cluster_partition = platform.cluster_partition_size
+
+    nr_bytes_available_per_numa_node = nr_bytes_available_per_core * nr_cores_per_numa_node
+    nr_bytes_available_per_cluster_node = nr_bytes_available_per_numa_node * nr_numa_nodes_per_cluster_node
 
     nr_cells_per_numa_node = nr_cores_per_numa_node * nr_cells_per_core
     nr_cells_per_cluster_node = nr_numa_nodes_per_cluster_node * nr_cells_per_numa_node
@@ -97,23 +119,43 @@ def calculate_array_shapes(
     array_size_per_cluster_partition = array_size(nr_cells_per_cluster_partition)
 
     # partition shape scaling experiment:
-    # - Use amount of memory that fits in the hardware occupied by the max number of workers
-    #    - cores: array_size_per_numa_node
-    #    - numa nodes: array_size_per_cluster_node
-    #    - cluster_node: array_size_per_cluster_partition_n
+    # Use amount of memory that fits in the hardware occupied by the max number of workers. The
+    # partition size found works well for the total hardware size. Partition sizes found when
+    # using smaller problems and less hardware are not that different.
+    # - cores: array_size_per_numa_node
+    # - numa nodes: array_size_per_cluster_node
+    # - cluster_node: array_size_per_cluster_partition
 
     # strong scaling experiment:
-    # - Use amount of memory that fits in the hardware occupied by a single worker:
-    #     - cores: array_size_per_core
-    #     - numa node: array_size_per_numa_node
-    #     - cluster node: array_size_per_cluster_node
+    # Use amount of memory that fits in the hardware occupied by a single worker. Otherwise
+    # the single worker will potentially perform less well because remote memory is being used,
+    # and scaling efficiencies will be over-estimated.
+    # - cores: array_size_per_core
+    # - numa node: array_size_per_numa_node
+    # - cluster node: array_size_per_cluster_node
+    # Rationale: Process a certain amount of work faster by adding more hardware. Therefore,
+    # the amount of work must fit in the memory occupied by a single worker.
 
     # weak scaling experiment:
-    # - Use amount of memory that fits in the hardware occupied by a single worker:
-    #     - cores: array_size_per_core
-    #     - numa node: array_size_per_numa_node
-    #     - cluster node: array_size_per_cluster_node
+    # Use amount of memory that fits in the hardware occupied by a single worker. It is OK to
+    # use a smaller problem in case the experiments take longer than needed. Never use a larger
+    # problem.
+    # - cores: array_size_per_core
+    # - numa node: array_size_per_numa_node
+    # - cluster node: array_size_per_cluster_node
 
+    memory_sizes = {
+            "core": nr_bytes_available_per_core / 1024**3,
+            "numa_node": nr_bytes_available_per_numa_node / 1024**3,
+            "cluster_node": nr_bytes_available_per_cluster_node / 1024**3,
+        }
+
+    # If these sizes are too large, then increase the overhead fraction.
+    # If these sizes are too low, then decrease the overhead fraction.
+    # Note that the amount of memory used by the task tree on the root node is not included in
+    # these calculations. The size of the task tree depends on the experiment. Use the sizes
+    # as hints. Never use larger arrays than printed here. That would imply a bug in the
+    # calculations or overhead_fraction.
     array_shapes = {
             "core": {
                     "max_nr_workers": nr_cores_per_numa_node,
@@ -139,23 +181,23 @@ def calculate_array_shapes(
                 "weak_scaling": 2 * (array_size_per_cluster_node,),
             }
 
-    return array_shapes
+    return memory_sizes, array_shapes
 
 
 def raster_information(
         dataset_name):
 
-    # TODO Read all this from the dataset
+    raster = gdal.Open(dataset_name)
 
-    crs = "EPSG:4326 - WGS 84 - Geographic"
+    # Origin is north-west corner of raster
+    x_origin, cell_width, _, y_origin, _, cell_height = raster.GetGeoTransform()
 
-    # Degrees, north-west corner of raster
-    x_origin = -18.0
-    y_origin = 38.0
-    cell_size = 0.0008333333333333333868
+    assert cell_width == abs(cell_height)
+    cell_size = cell_width
 
-    nr_rows = 87600
-    nr_cols = 84000
+    crs = raster.GetProjectionRef()
+    nr_rows = raster.RasterYSize
+    nr_cols = raster.RasterXSize
 
     return crs, (x_origin, y_origin), cell_size, (nr_rows, nr_cols)
 
