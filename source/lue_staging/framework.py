@@ -141,4 +141,48 @@ def wait_all(
     The result is discarded.
     """
     for future in futures:
-        future.get()
+        if hasattr(future, "get"):
+            future.get()
+        else:
+            lfr.wait(future)
+
+
+def add_raster_layers(
+        raster_view,
+        io_tuples):
+
+    for io_tuple in io_tuples:
+        array, layer_name = io_tuple
+
+        if isinstance(array, Iterable):
+            for i in range(len(array)):
+                layer_name_i = "{}-{}".format(layer_name, i)
+                raster_view.add_layer(layer_name_i, array[i].dtype)
+        else:
+            raster_view.add_layer(layer_name, array.dtype)
+
+
+def write_rasters3(
+        dataset_pathname,
+        phenomenon_name,
+        property_set_name,
+        io_tuples):
+
+    for io_tuple in io_tuples:
+        array, layer_name = io_tuple
+        property_set_pathname = os.path.join(dataset_pathname, phenomenon_name, property_set_name)
+
+        if isinstance(array, Iterable):
+            for i in range(len(array)):
+                layer_name_i = "{}-{}".format(layer_name, i)
+                array_pathname = os.path.join(property_set_pathname, layer_name_i)
+
+                lfr.write_array(array[i], array_pathname)
+
+                lstdm.write_translate_json(dataset_pathname, phenomenon_name, property_set_name, layer_name_i)
+        else:
+            array_pathname = os.path.join(property_set_pathname, layer_name)
+
+            lfr.write_array(array, array_pathname)
+
+            lstdm.write_translate_json(dataset_pathname, phenomenon_name, property_set_name, layer_name)
