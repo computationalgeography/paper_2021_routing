@@ -77,6 +77,7 @@ function post_process()
         flow_direction
         inflow_count
         stream_class
+        timestamp
     "
 
     for layer_name in $layer_names;
