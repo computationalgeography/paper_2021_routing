@@ -183,6 +183,7 @@ def write_rasters3(
         else:
             array_pathname = os.path.join(property_set_pathname, layer_name)
 
+            print("write {}/{}...".format(dataset_pathname, array_pathname))
             lfr.write_array(array, array_pathname)
 
             lstdm.write_translate_json(dataset_pathname, phenomenon_name, property_set_name, layer_name)
