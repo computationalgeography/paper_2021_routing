@@ -51,17 +51,16 @@ def perform_calculations(
     timestamp -= lfr.minimum(timestamp)
     timestamp = lfr.cast(timestamp, np.dtype(np.float32))
 
-    partition_id = None  # TODO lfr.partition_id(flow_direction)
+    locality_id = lfr.locality_id(flow_direction)
     inflow_count = lfr.inflow_count(flow_direction)
     stream_class = lfr.accu_info3(flow_direction)
 
-    return partition_id, inflow_count, stream_class, timestamp
-
+    return locality_id, inflow_count, stream_class, timestamp
 
 
 def write_outputs(
         flow_direction,
-        partition_id,
+        locality_id,
         inflow_count,
         stream_class,
         timestamp,
@@ -86,9 +85,9 @@ def write_outputs(
         output_dataset, phenomenon_name, property_set_name1, flow_direction.shape, space_box)
     lstfr.add_raster_layers(raster_view, io_tuples1)
 
-
     property_set_name2 = "partition"
     io_tuples2 = [
+            (locality_id, "locality_id"),
             (timestamp, "timestamp"),
         ]
     raster_view = ldm.hl.create_raster_view(
@@ -108,14 +107,15 @@ def accu_info3():
 
     input_dataset_pathname, array_pathname, output_dataset_pathname = parse_command_line()
 
-    # partition_shape = (2000, 2000)
-    partition_shape = (500, 500)
+    partition_shape = (2000, 2000)
+    # partition_shape = (500, 500)
     flow_direction = create_inputs(input_dataset_pathname, array_pathname, partition_shape)
 
-    partition_id, inflow_count, stream_class, timestamp = perform_calculations(flow_direction, partition_shape)
+    locality_id, inflow_count, stream_class, timestamp = \
+        perform_calculations(flow_direction, partition_shape)
 
     write_outputs(
-        flow_direction, partition_id, inflow_count, stream_class, timestamp,
+        flow_direction, locality_id, inflow_count, stream_class, timestamp,
         input_dataset_pathname, array_pathname, output_dataset_pathname)
 
 

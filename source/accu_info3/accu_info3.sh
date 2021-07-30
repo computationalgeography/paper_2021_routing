@@ -20,7 +20,6 @@ function run_on_eejit()
 {
     export LD_PRELOAD=$GOOGLE_PERFTOOLS_ROOT/lib/libtcmalloc_minimal.so.4
 
-    partition="defq"
     nr_nodes=1
     nr_numa_domains_per_node=8
     nr_cores_per_socket=6
@@ -30,7 +29,7 @@ function run_on_eejit()
 
 
     salloc \
-        --partition=$partition \
+        --partition="allq" --qos="swdev" \
         --nodes=$nr_nodes \
         --ntasks=$nr_localities \
         --cpus-per-task=$nr_cpus_per_task \
@@ -76,6 +75,7 @@ function post_process()
     layer_names="
         flow_direction
         inflow_count
+        locality_id
         stream_class
         timestamp
     "
