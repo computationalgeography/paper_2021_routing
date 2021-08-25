@@ -1,5 +1,5 @@
 """
-Calculate accu_threshold3 with LUE and report the amount of time
+Calculate flow accumulation with LUE and report the amount of time
 it took.
 """
 import os.path
@@ -68,8 +68,22 @@ def create_inputs(
     return flow_direction, external_inflow, threshold
 
 
-@lst.duration("perform_calculations")
-def perform_calculations(
+@lst.duration("calculate_accu")
+def calculate_accu(
+        flow_direction,
+        external_inflow):
+
+    outflow = lfr.accu3(flow_direction, external_inflow)
+
+    print("outflow...")
+    lfr.wait(outflow)
+    sys.stdout.flush()
+
+    return outflow
+
+
+@lst.duration("calculate_accu_threshold")
+def calculate_accu_threshold(
         flow_direction,
         external_inflow,
         threshold):
@@ -86,10 +100,6 @@ def perform_calculations(
     print("residue...")
     lfr.wait(residue)
     sys.stdout.flush()
-
-    # lstfr.wait_all([
-    #     lfr.maximum(outflow),
-    #     lfr.maximum(residue)])
 
     return outflow
 
@@ -119,7 +129,7 @@ def write_outputs(
 
 @lstfr.lue_init
 @lst.duration("overall")
-def accumulate_flow():
+def flow_accumulation():
 
     # Initialize (blocks)
     input_dataset_pathname, array_pathname, output_dataset_pathname = parse_command_line()
@@ -127,11 +137,14 @@ def accumulate_flow():
     flow_direction, external_inflow, threshold = \
         create_inputs(input_dataset_pathname, array_pathname, partition_shape)
 
-    # Calculate (blocks)
-    outflow = perform_calculations(flow_direction, external_inflow, threshold)
+    # Calculate accu (blocks)
+    outflow = calculate_accu(flow_direction, external_inflow)
 
-    # Write outputs (blocks)
-    write_outputs(flow_direction, outflow, input_dataset_pathname, array_pathname, output_dataset_pathname)
+    # Calculate accu_threshold (blocks)
+    outflow = calculate_accu_threshold(flow_direction, external_inflow, threshold)
+
+    # # Write outputs (blocks)
+    # write_outputs(flow_direction, outflow, input_dataset_pathname, array_pathname, output_dataset_pathname)
 
 
-accumulate_flow()
+flow_accumulation()

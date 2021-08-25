@@ -41,8 +41,19 @@ def create_inputs(
     return flow_direction, material, threshold
 
 
-@lst.duration("perform_calculations")
-def perform_calculations(
+@lst.duration("calculate_accu")
+def calculate_accu(
+        flow_direction,
+        material,
+        threshold):
+
+    outflow = pcraster.accuflux(flow_direction, material)
+
+    return outflow
+
+
+@lst.duration("calculate_accu_threshold")
+def calculate_accu_threshold(
         flow_direction,
         material,
         threshold):
@@ -61,17 +72,18 @@ def write_outputs(
 
 
 @lst.duration("overall")
-def accumulate_flow():
+def flow_accumulation():
 
     # Initialize
     flow_direction_pathname, outflow_pathname = parse_command_line()
     flow_direction, material, threshold = create_inputs(flow_direction_pathname)
 
-    # Calculate
-    outflow = perform_calculations(flow_direction, material, threshold)
+    outflow = calculate_accu(flow_direction, material, threshold)
 
-    # Write outputs
-    write_outputs(outflow, outflow_pathname)
+    outflow = calculate_accu_threshold(flow_direction, material, threshold)
+
+    # # Write outputs
+    # write_outputs(outflow, outflow_pathname)
 
 
-accumulate_flow()
+flow_accumulation()

@@ -3,10 +3,9 @@ channels:
 - conda-forge
 - defaults
 dependencies:
+- conan
 - docopt
 - fiona
-- ipython
 - matplotlib
 - numpy
 - pcraster
-- tqdm
