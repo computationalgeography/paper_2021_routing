@@ -10,19 +10,20 @@ Jong](mailto:k.dejong1@uu.nl) in case you have questions.
 - De Jong, K., Panja, D., Karssenberg, D., Van Kreveld, M., Scalability and composability
   of flow accumulation algorithms based on asynchronous many-tasks (submitted for review)
 
-| directory              | contents                                                                       |
-| ---------              | --------                                                                       |
-| `lue`                  | Version of LUE described in manuscript                                         |
-| `lue/benchmark`        | Settings and scripts related to scalability experiments performed              |
-| `lue/source/framework` | Modelling framework source code                                                |
-| `output`               | Outputs of scaling experiments performed                                       |
-| `source`               | Various scripts related to performance and composability experiments performed |
+| directory                                    | contents                                                                       |
+| ---------                                    | --------                                                                       |
+| `lue`                                        | Version of LUE described in manuscript                                         |
+| `lue/benchmark`                              | Settings and scripts related to scalability experiments performed              |
+| `lue/source/framework`                       | Modelling framework source code                                                |
+| `output`                                     | Outputs of scaling experiments performed                                       |
+| `source`                                     | Various scripts related to performance and composability experiments performed |
+| [document/figure](document/figure/README.md) | Supplementary figures                                                          |
 
-[The](The) most recent LUE source code can be found in LUE's
+The most recent LUE source code can be found in LUE's
 [own repository](https://github.com/computationalgeography/lue).
 
 In the sources, flow accumulation algorithms are named as in the manuscript, but with a postfix
-of '3'. So `accu_threhold` is called `accu_threshold3`. The algorithms we describe are the 3rd
+of '3'. So `accu_threshold` is called `accu_threshold3`. The algorithms we describe are the 3rd
 version of several trials.
 
 [<img src="document/figure/runoff.png" width="400"/>](document/figure/README.md)
