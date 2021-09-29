@@ -1,0 +1,72 @@
+{
+    "duration": 1392942,
+    "environment": {
+        "nr_workers": 4
+    },
+    "results": [
+        {
+            "shape_in_partitions": [
+                21,
+                21
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                21,
+                21
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                21,
+                21
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                21,
+                21
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                21,
+                21
+            ]
+        }
+    ],
+    "start": "2021-08-30T14:01:28+0200",
+    "task": {
+        "array_shape": [
+            56000,
+            56000
+        ],
+        "partition_shape": [
+            2598,
+            2598
+        ]
+    },
+    "timings": [
+        {
+            "duration": 124448,
+            "start": "2021-08-30T14:04:04+0200"
+        },
+        {
+            "duration": 125027,
+            "start": "2021-08-30T14:08:49+0200"
+        },
+        {
+            "duration": 123530,
+            "start": "2021-08-30T14:13:12+0200"
+        },
+        {
+            "duration": 126023,
+            "start": "2021-08-30T14:17:28+0200"
+        },
+        {
+            "duration": 125670,
+            "start": "2021-08-30T14:22:35+0200"
+        }
+    ],
+    "unit": "millisecond"
+}

@@ -1,0 +1,32 @@
+{
+    "duration": 126591,
+    "environment": {
+        "nr_workers": 7
+    },
+    "results": [
+        {
+            "shape_in_partitions": [
+                17,
+                17
+            ]
+        }
+    ],
+    "start": "2021-08-31T14:20:10+0200",
+    "task": {
+        "array_shape": [
+            26458,
+            26458
+        ],
+        "partition_shape": [
+            1500,
+            1500
+        ]
+    },
+    "timings": [
+        {
+            "duration": 114430,
+            "start": "2021-08-31T14:20:22+0200"
+        }
+    ],
+    "unit": "millisecond"
+}
