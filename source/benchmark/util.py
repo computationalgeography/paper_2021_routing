@@ -1,11 +1,8 @@
 import os.path
 import sys
-sys.path=[
-        os.path.join(os.environ["LUE"], "benchmark", "lue")
-    ] + sys.path
-# sys.path = [
-#     os.path.join(os.path.split(__file__)[0], "..", "..", "..", "lue/benchmark/lue")
-# ] + sys.path
+sys.path = [
+    os.path.join(os.path.split(__file__)[0], "..", "..", "lue/benchmark/lue")
+] + sys.path
 import benchmark
 import benchmark.cluster
 import fiona
