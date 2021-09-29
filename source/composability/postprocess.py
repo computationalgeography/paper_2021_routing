@@ -5,6 +5,28 @@ import pickle
 import pprint
 
 
+def composability(
+        synchronous_duration,
+        asynchronous_duration):
+
+    gain = synchronous_duration - asynchronous_duration
+
+    return (gain / synchronous_duration) * 100.0
+
+
+def print_table(
+        labels,
+        synchronous_durations,
+        asynchronous_durations):
+
+    assert len(labels) == len(synchronous_durations) == len(asynchronous_durations)
+
+    for i in range(len(labels)):
+        print("{}, {}, {}, {}".format(
+            labels[i], synchronous_durations[i], asynchronous_durations[i],
+            composability(synchronous_durations[i], asynchronous_durations[i])))
+
+
 def postprocess(
         results,
         plot_pathame):
@@ -18,9 +40,13 @@ def postprocess(
     # Create a plot that shows how duration varies per experiment:
     # - Bargraph with per partition_shape / synchronize combination the duration
 
-    labels = [str(result.partition_shape) for result in results if not result.synchronize]
+    partition_shapes = [result.partition_shape for result in results if not result.synchronize]
+    labels = ["{}".format(shape[0]) for shape in partition_shapes]
+    # labels = [str(result.partition_shape) for result in results if not result.synchronize]
     asynchronous_durations = [result.duration for result in results if not result.synchronize]
     synchronous_durations = [result.duration for result in results if result.synchronize]
+
+    print_table(labels, synchronous_durations, asynchronous_durations)
 
     x = np.arange(len(labels))
     width = 0.35
@@ -33,7 +59,7 @@ def postprocess(
     ax.set_title("Synchronous and asynchronous durations by partition shape")
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
-    ax.set_xlabel("Partition shape")
+    ax.set_xlabel("Partition shape (sqrt)")
     ax.legend()
 
     ax.bar_label(rects1, padding=3)
