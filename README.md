@@ -7,26 +7,31 @@ experiments and reproduce results on similar platforms, but it is unlikely that 
 this repository will work unchanged. Feel free to contact the corresponding author [Kor de
 Jong](mailto:k.dejong1@uu.nl) in case you have questions.
 
-- De Jong, K., TODO,
-  TODO
-  Computers & Geosciences (2021), submitted for review
+- De Jong, K., Panja, D., Karssenberg, D., Van Kreveld, M., Scalability and composability
+  of flow accumulation algorithms based on asynchronous many-tasks (submitted for review)
 
-| directory              | contents                                                   |
-| ---------              | --------                                                   |
-| `lue`                  | Version of LUE described in manuscript                     |
-| `TODO`                 | TODO                                                       |
+| directory              | contents                                                                       |
+| ---------              | --------                                                                       |
+| `lue`                  | Version of LUE described in manuscript                                         |
+| `lue/benchmark`        | Settings and scripts related to scalability experiments performed              |
+| `lue/source/framework` | Modelling framework source code                                                |
+| `output`               | Outputs of scaling experiments performed                                       |
+| `source`               | Various scripts related to performance and composability experiments performed |
 
-The most recent LUE source code can be found in LUE's
+[The](The) most recent LUE source code can be found in LUE's
 [own repository](https://github.com/computationalgeography/lue).
 
+In the sources, flow accumulation algorithms are named as in the manuscript, but with a postfix
+of '3'. So `accu_threhold` is called `accu_threshold3`. The algorithms we describe are the 3rd
+version of several trials.
 
-![TODO](figure/todo.png)
+[<img src="document/figure/runoff.png" width="400"/>](document/figure/README.md)
 
 
 ## Create paper environment and build LUE modelling framework
 LUE is currently developed and tested on Linux using GCC-9/10. Whenever LUE is changed, it is
 built for various platforms (combinations of operating systems, versions of 3rd party libraries
-and tools). For this Github workflows are used that use Gihub actions. Inspecting
+and tools). For this Github workflows are used that use Github actions. Inspecting
 [the Github workflow scripts](lue/.github/workflows)
 can be useful to configure a platform on which LUE can be built. LUE potentially compiles and
 runs fine on other platforms too, but this is not regularly tested.
@@ -60,21 +65,6 @@ cmake \
 cmake --build . --parallel 10
 ```
 
-TODO
-```
--DLUE_BUILD_VIEW:BOOL=TRUE
--DLUE_BUILD_TEST:BOOL=TRUE
--DLUE_BUILD_DOCUMENTATION:BOOL=TRUE
--DLUE_BUILD_VIEW:BOOL=FALSE
--DLUE_BUILD_DOCUMENTATION:BOOL=FALSE
--DLUE_FRAMEWORK_WITH_BENCHMARKS:BOOL=TRUE
--DLUE_TEST_NR_LOCALITIES_PER_TEST=2
--DLUE_TEST_NR_THREADS_PER_LOCALITY=3
--DLUE_TEST_HPX_RUNWRAPPER=mpi
--DLUE_TEST_HPX_PARCELPORT=mpi
-```
-
-
 The mentioned CMake toolchain file contains additional settings specific for the
 platform we used for running the experiments. It is part of the author's [my_devenv
 repository](https://github.com/kordejong/my_devenv/tree/9eb8896d24389f5ae9090d368dd2fac88259c633)
@@ -92,7 +82,7 @@ also work. HPX is built during the LUE build.
 More information about building (the latest version of) LUE can be found in [the LUE
 documentation](https://lue.computationalgeography.org/doc).
 
-Once LUE is build, executables can be found in `build/bin` and shared libraries and Python
+Once LUE is built, executables can be found in `build/bin` and shared libraries and Python
 packages in `build/lib`. On Linux, the software can be used like this:
 
 ```bash
@@ -107,7 +97,7 @@ PYTHONPATH=`pwd`/lib:$PYTHONPATH python -c "import lue; print(lue.__version__)"
 
 Note that LUE is still experimental software. The above has been tested on the platform we
 performed our experiments on. This does not guarantee that it will work on other platforms,
-but we think that LUE can be made to work on other platforms without much effort.
+but we expact that LUE can be made to work on other platforms without much effort.
 
 
 ## Running experiments
@@ -115,11 +105,10 @@ Example sessions. Update as appropriate.
 
 ### Performance
 ```bash
-set -e
-
 paper_prefix="<prefix_to>/paper_2021_routing"
+routing_data="<prefix_to>/data"
 
-export LUE_ROUTING_DATA="<prefix_to>/routing"
+export LUE_ROUTING_DATA="$routing_data/routing"
 export LUE_OBJECTS="$paper_prefix/build"
 export PYTHONPATH="$paper_prefix/build/lib:$PYTHONPATH"
 
@@ -128,7 +117,6 @@ bash "$paper_prefix/source/performance/flow_accumulation.sh"
 
 
 ### Determine shapes of arrays for experiments
-
 ```bash
 paper_prefix="<prefix_to>/paper_2021_routing"
 routing_data="<prefix_to>/data"
@@ -138,4 +126,17 @@ export PYTHONPATH="$paper_prefix/build/lib:$PYTHONPATH"
 
 # See usage info of script for meaning of arguments
 python $paper_prefix/source/benchmark/array_shapes.py <platform> 0.0 13 150 2 $routing_data/africa/factor2.vrt 23 13 ~/tmp/bounding_boxes
+```
+
+
+### Composability
+```bash
+paper_prefix="<prefix_to>/paper_2021_routing"
+routing_data="<prefix_to>/data"
+
+export LUE_ROUTING_DATA="$routing_data/routing"
+export LUE_BENCHMARK_DATA="$routing_data/benchmark"
+export PYTHONPATH="$paper_prefix/build/lib:$PYTHONPATH"
+
+bash "$paper_prefix/source/composability/composability.sh"
 ```
