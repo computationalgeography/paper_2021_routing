@@ -3,8 +3,9 @@
 This repository contains a version of the LUE environmental modelling framework as used
 in our 2021 manuscript, as well as example scripts and other files used in the preparation of
 that manuscript. We try to provide all information needed for others to be able to rerun
-experiments and reproduce results on similar platforms. Feel free to contact the corresponding
-author [Kor de Jong](mailto:k.dejong1@uu.nl) in case you have questions.
+experiments and reproduce results on similar platforms, but it is unlikely that the scripts in
+this repository will work unchanged. Feel free to contact the corresponding author [Kor de
+Jong](mailto:k.dejong1@uu.nl) in case you have questions.
 
 - De Jong, K., TODO,
   TODO
@@ -110,8 +111,9 @@ but we think that LUE can be made to work on other platforms without much effort
 
 
 ## Running experiments
-### Performance
+Example sessions. Update as appropriate.
 
+### Performance
 ```bash
 set -e
 
@@ -124,3 +126,16 @@ export PYTHONPATH="$paper_prefix/build/lib:$PYTHONPATH"
 bash "$paper_prefix/source/performance/flow_accumulation.sh"
 ```
 
+
+### Determine shapes of arrays for experiments
+
+```bash
+paper_prefix="<prefix_to>/paper_2021_routing"
+routing_data="<prefix_to>/data"
+
+export LUE="$paper_prefix/lue"
+export PYTHONPATH="$paper_prefix/build/lib:$PYTHONPATH"
+
+# See usage info of script for meaning of arguments
+python $paper_prefix/source/benchmark/array_shapes.py <platform> 0.0 13 150 2 $routing_data/africa/factor2.vrt 23 13 ~/tmp/bounding_boxes
+```
