@@ -1,0 +1,222 @@
+{
+    "duration": 807795,
+    "environment": {
+        "nr_workers": 6
+    },
+    "results": [
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        },
+        {
+            "shape_in_partitions": [
+                29,
+                29
+            ]
+        }
+    ],
+    "start": "2022-01-26T16:42:36+0100",
+    "task": {
+        "array_shape": [
+            73485,
+            73485
+        ],
+        "partition_shape": [
+            2500,
+            2500
+        ]
+    },
+    "timings": [
+        {
+            "duration": 9306,
+            "start": "2022-01-26T16:43:15+0100"
+        },
+        {
+            "duration": 8508,
+            "start": "2022-01-26T16:43:54+0100"
+        },
+        {
+            "duration": 9072,
+            "start": "2022-01-26T16:44:33+0100"
+        },
+        {
+            "duration": 9532,
+            "start": "2022-01-26T16:45:13+0100"
+        },
+        {
+            "duration": 8427,
+            "start": "2022-01-26T16:45:53+0100"
+        },
+        {
+            "duration": 9715,
+            "start": "2022-01-26T16:46:32+0100"
+        },
+        {
+            "duration": 9585,
+            "start": "2022-01-26T16:47:12+0100"
+        },
+        {
+            "duration": 8849,
+            "start": "2022-01-26T16:47:52+0100"
+        },
+        {
+            "duration": 8940,
+            "start": "2022-01-26T16:48:32+0100"
+        },
+        {
+            "duration": 8983,
+            "start": "2022-01-26T16:49:11+0100"
+        },
+        {
+            "duration": 10116,
+            "start": "2022-01-26T16:49:52+0100"
+        },
+        {
+            "duration": 9264,
+            "start": "2022-01-26T16:50:32+0100"
+        },
+        {
+            "duration": 9648,
+            "start": "2022-01-26T16:51:13+0100"
+        },
+        {
+            "duration": 9629,
+            "start": "2022-01-26T16:51:52+0100"
+        },
+        {
+            "duration": 9622,
+            "start": "2022-01-26T16:52:33+0100"
+        },
+        {
+            "duration": 9397,
+            "start": "2022-01-26T16:53:13+0100"
+        },
+        {
+            "duration": 9945,
+            "start": "2022-01-26T16:53:53+0100"
+        },
+        {
+            "duration": 9276,
+            "start": "2022-01-26T16:54:35+0100"
+        },
+        {
+            "duration": 9199,
+            "start": "2022-01-26T16:55:14+0100"
+        },
+        {
+            "duration": 9404,
+            "start": "2022-01-26T16:55:54+0100"
+        }
+    ],
+    "unit": "millisecond"
+}
