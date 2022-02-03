@@ -1,0 +1,32 @@
+{
+    "duration": 8733,
+    "environment": {
+        "nr_workers": 3
+    },
+    "results": [
+        {
+            "shape_in_partitions": [
+                12,
+                12
+            ]
+        }
+    ],
+    "start": "2022-02-02T12:07:28+0100",
+    "task": {
+        "array_shape": [
+            30000,
+            30000
+        ],
+        "partition_shape": [
+            2500,
+            2500
+        ]
+    },
+    "timings": [
+        {
+            "duration": 2664,
+            "start": "2022-02-02T12:07:34+0100"
+        }
+    ],
+    "unit": "millisecond"
+}
