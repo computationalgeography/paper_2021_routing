@@ -73,9 +73,11 @@ function run_on_desktop()
 function post_process()
 {
     layer_names="
+        flow_accumulation
         flow_direction
         inflow_count
         locality_id
+        partition_id
         stream_class
         timestamp
     "
@@ -95,6 +97,6 @@ function post_process()
 }
 
 
-# run_on_desktop 4
+run_on_desktop 4
 # run_on_eejit
-# post_process
+post_process

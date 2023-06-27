@@ -46,21 +46,26 @@ def perform_calculations(
     # is supported by GDAL
     material = lfr.create_array(flow_direction.shape, partition_shape, np.dtype(np.float32), 1.0)
     lfr.wait(material)
-    timestamp = lfr.timestamp(lfr.accu3(flow_direction, material))
+    flow_accumulation = lfr.accu3(flow_direction, material)
+    timestamp = lfr.timestamp(flow_accumulation)
     lfr.wait(timestamp)
     timestamp -= lfr.minimum(timestamp)
     timestamp = lfr.cast(timestamp, np.dtype(np.float32))
+    del material
 
     locality_id = lfr.locality_id(flow_direction)
+    partition_id = lfr.array_partition_id(flow_direction)
     inflow_count = lfr.inflow_count(flow_direction)
     stream_class = lfr.accu_info3(flow_direction)
 
-    return locality_id, inflow_count, stream_class, timestamp
+    return locality_id, partition_id, flow_accumulation, inflow_count, stream_class, timestamp
 
 
 def write_outputs(
         flow_direction,
         locality_id,
+        partition_id,
+        flow_accumulation,
         inflow_count,
         stream_class,
         timestamp,
@@ -76,7 +81,9 @@ def write_outputs(
     output_dataset = ldm.create_dataset(output_dataset_pathname)
 
     io_tuples1 = [
+            (partition_id, "partition_id"),
             (flow_direction, "flow_direction"),
+            (flow_accumulation, "flow_accumulation"),
             (inflow_count, "inflow_count"),
             (stream_class, "stream_class"),
         ]
@@ -107,15 +114,17 @@ def accu_info3():
 
     input_dataset_pathname, array_pathname, output_dataset_pathname = parse_command_line()
 
-    partition_shape = (2000, 2000)
+    # partition_shape = (2000, 2000)
+    # partition_shape = (1000, 1000)
+    partition_shape = (750, 750)
     # partition_shape = (500, 500)
     flow_direction = create_inputs(input_dataset_pathname, array_pathname, partition_shape)
 
-    locality_id, inflow_count, stream_class, timestamp = \
+    locality_id, partition_id, flow_accumulation, inflow_count, stream_class, timestamp = \
         perform_calculations(flow_direction, partition_shape)
 
     write_outputs(
-        flow_direction, locality_id, inflow_count, stream_class, timestamp,
+        flow_direction, locality_id, partition_id, flow_accumulation, inflow_count, stream_class, timestamp,
         input_dataset_pathname, array_pathname, output_dataset_pathname)
 
 
